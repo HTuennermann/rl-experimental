@@ -16,18 +16,19 @@ import gym
 import time
 
 #import cbcenv
-import realenv as cbcenv
+#import realenv as cbcenv
+import realenvusb as cbcenv
 
 #####################  hyper parameters  ####################
 
-MAX_EPISODES = 1000
-MAX_EP_STEPS = 500
-LR_A = 0.001    # learning rate for actor
-LR_C = 0.002    # learning rate for critic
+MAX_EPISODES = 5000
+MAX_EP_STEPS = 200
+LR_A = 0.0001    # learning rate for actor
+LR_C = 0.0002    # learning rate for critic
 GAMMA = 0.9     # reward discount
 TAU = 0.01      # soft replacement
-MEMORY_CAPACITY = 20000
-BATCH_SIZE = 32
+MEMORY_CAPACITY = 10000
+BATCH_SIZE = 512
 
 RENDER = False
 ENV_NAME = 'Pendulum-v0'
@@ -60,6 +61,12 @@ class DDPG(object):
             self.q = self._build_c(self.S, self.a.output[1], scope='eval', trainable=True)
             self.q_ = self._build_c(self.S_, self.a_.output[1], scope='target', trainable=False)
 
+#ddpg.a.save_weights("midfrnewt.h5")
+#ddpg.q.save_weights("midfrnewqt.h5")
+        #self.a.load_weights("midfrnewt.h5") 
+        #self.q_.load_weights("midfrnewqt.h5") 
+        #self.a.load_weights("midfrnewt.h5") 
+        #self.q.load_weights("midfrnewqt.h5") 
         # networks parameters
         self.ae_params = self.a.trainable_variables
         self.at_params = self.a_.trainable_variables
@@ -115,8 +122,8 @@ class DDPG(object):
     def _build_a(self, s, scope, trainable):
 
         input_data_s = tf.keras.Input(shape=s.shape)
-        net = tf.keras.layers.Dense(30, activation=tf.nn.relu)(input_data_s)
-        net = tf.keras.layers.Dense(30, activation=tf.nn.relu)(net)
+        net = tf.keras.layers.Dense(100, activation=tf.nn.relu)(input_data_s)
+        net = tf.keras.layers.Dense(100, activation=tf.nn.relu)(net)
         a = tf.keras.layers.Dense(1, activation=tf.nn.tanh)(net)
         output = tf.keras.layers.Lambda(lambda x: x*self.a_bound)(a)
         return tf.keras.Model(inputs=input_data_s, outputs=output)
@@ -124,7 +131,7 @@ class DDPG(object):
 
     def _build_c(self, s, a, scope, trainable):
 
-        n_l1 = 30
+        n_l1 = 100
         #w1_s = tf.get_variable('w1_s', [self.s_dim, n_l1], trainable=trainable)
         #w1_a = tf.get_variable('w1_a', [self.a_dim, n_l1], trainable=trainable)
         #b1 = tf.get_variable('b1', [1, n_l1], trainable=trainable)
@@ -181,5 +188,6 @@ for i in range(MAX_EPISODES):
             print('Episode:', i, ' Reward: %f' % (ep_reward), 'Explore: %.2f' % var, )
             # if ep_reward > -300:RENDER = True
             break
-ddpg.a.save_weights("ddpg2.h5")
+ddpg.a.save_weights("midfrusb-real.h5")
+ddpg.q.save_weights("midfrusbq-real.h5")
 print('Running time: ', time.time() - t1)

@@ -22,37 +22,37 @@ class logger:
         self.pd.close()
         self.a.close()
 
-l = logger("log2")
-
+#l = 
 #l.diode(1)
         
 class daq:
-    def __init__(self, logger):
+    def __init__(self, logname="testrun"):
         self.out = nidaqmx.Task()
         self.inp = nidaqmx.Task()
         self.out.ao_channels.add_ao_voltage_chan("Dev2/ao0", min_val=0, max_val=5.0)
         self.inp.ai_channels.add_ai_voltage_chan("Dev2/ai0:1")
-        #self.l = logger
+        self.l = logger(logname)
+
     def move(self,act):
         if(act>0 and act<5):
             self.out.write(act)
-            l.act(act)
+            self.l.act(act)
             
     def sense(self):
         d = np.average(np.array(self.inp.read(number_of_samples_per_channel=10)), axis=1)
 
-        l.diode(d)
+        self.l.diode(d)
         return d[0]
 
 
 class ENV(gym.Env):
-    def __init__(self):
+    def __init__(self, logname="testrun"):
         #f = open(feeder, "rb")
 
         self.act = np.zeros(10)
         self.pd = np.zeros(10)
         
-        self.d = daq(l)
+        self.d = daq(logname)
         self.phase = 2.5
         
         #self.action_space = spaces.Discrete(21)
@@ -111,13 +111,13 @@ class ENV(gym.Env):
         self.act = np.roll(self.act,1)
         
         self.pd = np.roll(self.pd,1)
-        self.act[0] = action
-        self.act[-1] = self.phase
+        self.act[0] = action*100
+        #self.act[-1] = self.phase
         self.pd[0] = result
         #self.index += 1
         #reward = (result)**4-a#-(result-0.5)**2
-        reward = -(result-2)**2
-        reward = result #- self.pd.std()*10.0
+        reward = -(result-0.8333431500000001)**2 *100
+        #reward = result #- self.pd.std()*10.0
         #reward = np.min(self.pd)
         self.lastresult = reward
         #reward = reward + rew
